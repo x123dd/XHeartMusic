@@ -1,0 +1,36 @@
+name: Upload Release Assets
+
+on:
+  push:
+    branches:
+      - release-v*.*.*
+
+permissions:
+  contents: write
+
+jobs:
+  upload:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout release assets branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+
+      - name: Reassemble installer
+        run: |
+          cat .release-chunks/exe.part* > XHeartMusic-1.1.1-Setup.exe
+          cp dist/XHeartMusic-1.1.1-Setup.exe.blockmap .
+          cp dist/XHeartMusic-1.1.1-SHA256SUMS.txt .
+          sha256sum XHeartMusic-1.1.1-Setup.exe
+
+      - name: Upload to Release
+        run: |
+          gh release upload v1.1.1 \
+            XHeartMusic-1.1.1-Setup.exe \
+            XHeartMusic-1.1.1-Setup.exe.blockmap \
+            XHeartMusic-1.1.1-SHA256SUMS.txt \
+            --repo x123dd/XHeartMusic \
+            --clobber
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
